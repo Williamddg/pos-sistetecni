@@ -1,5 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
+const rendererEventChannels = new Set(['installer:progress']);
+
 contextBridge.exposeInMainWorld('api', {
   
   installer: {
@@ -12,8 +14,13 @@ autodetect: {
   reset:  () => ipcRenderer.invoke('autodetect:reset'),
   },
 on: (channel: string, cb: (...args: any[]) => void) => {
-  ipcRenderer.on(channel, (_event, ...args) => cb(...args));
-  return () => ipcRenderer.removeAllListeners(channel);
+  if (!rendererEventChannels.has(channel)) {
+    throw new Error('Canal de evento no permitido');
+  }
+
+  const wrapped = (_event: unknown, ...args: any[]) => cb(...args);
+  ipcRenderer.on(channel, wrapped);
+  return () => ipcRenderer.removeListener(channel, wrapped);
   },
   config: {
     get: () => ipcRenderer.invoke('config:get'),

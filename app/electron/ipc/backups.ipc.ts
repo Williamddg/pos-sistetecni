@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { app, dialog, ipcMain } from 'electron';
-import { getDb, getDbPath } from '../db/db';
+import { closeDb, getDb, getDbPath } from '../db/db';
 import { logAudit } from '../db/queries';
 import { requirePermissionFromPayload } from './rbac';
 
@@ -95,7 +95,9 @@ export const registerBackupsIpc = (): void => {
       requirePermissionFromPayload(payload, 'backup:write');
       const file = await dialog.showOpenDialog({ properties: ['openFile'], filters: [{ name: 'SQLite DB', extensions: ['db'] }] });
       if (file.canceled || !file.filePaths[0]) return false;
+      closeDb();
       fs.copyFileSync(file.filePaths[0], getDbPath());
+      getDb();
       return true;
     } catch (error) {
       console.error('[backup:restore] failed', error);

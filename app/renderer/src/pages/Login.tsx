@@ -11,8 +11,8 @@ type LoginUser = {
 };
 
 export const Login = ({ onLogin }: { onLogin: (u: any) => void }) => {
-  const [email, setEmail] = useState("admin@sistetecni.com");
-  const [password, setPassword] = useState("admin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showCard, setShowCard] = useState(false);

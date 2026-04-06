@@ -77,7 +77,9 @@ export const registerSalesIpc = (): void => {
     show: false,
     autoHideMenuBar: true,
     webPreferences: {
-      sandbox: false,
+      sandbox: true,
+      nodeIntegration: false,
+      contextIsolation: true,
     },
   });
 
