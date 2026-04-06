@@ -1,3 +1,2 @@
 -- Usuario inicial:
--- email: admin@sistetecni.com
--- password: Admin123*
+-- Definir credenciales seguras y únicas por instalación.

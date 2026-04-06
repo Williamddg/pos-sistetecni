@@ -28,7 +28,6 @@ npm run package
 - Backups: `%APPDATA%/Sistetecni POS/backups/`
 
 ## Credenciales iniciales
-- `admin@sistetecni.com`
-- `Admin123*`
-
-> Cambiar contraseña desde Settings (pendiente UI completa de usuarios para siguientes iteraciones).
+- No publicar credenciales por defecto en producción.
+- Definir usuario administrador y contraseña segura durante instalación/puesta en marcha.
+- Forzar cambio de contraseña inicial en el primer ingreso.

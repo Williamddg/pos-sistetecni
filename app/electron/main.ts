@@ -3,7 +3,7 @@ import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import path from 'node:path';
 import { autoUpdater } from 'electron-updater';
 
-import { getDb, getDbMode } from './db/db';
+import { getDb } from './db/db';
 
 import { registerAuthIpc } from './ipc/auth.ipc';
 import { registerProductsIpc } from './ipc/products.ipc';
@@ -112,6 +112,8 @@ const createWindow = async (): Promise<void> => {
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
+      webSecurity: true,
       preload: path.join(__dirname, 'preload.js'),
     },
   });
@@ -213,10 +215,6 @@ app.whenReady().then(async () => {
   await ensureDailyBackup();
   await createWindow();
   await checkForAppUpdates();
-
-  setInterval(async () => {
-    console.log('DB MODE:', await getDbMode());
-  }, 3000);
 });
 
 app.on('activate', async () => {
