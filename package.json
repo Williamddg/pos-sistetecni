@@ -12,29 +12,23 @@
     "build": "npm run build:renderer && npm run build:electron",
     "build:renderer": "vite build --config app/renderer/vite.config.ts",
     "build:electron": "node -e \"require('fs').rmSync('dist/electron',{recursive:true,force:true})\" && tsc -p tsconfig.electron.json",
-    "lint": "eslint . --ext .ts,.tsx",
-    "package": "npm run build && npm run rebuild:native && electron-builder --win nsis",
-    "rebuild:native": "npx electron-rebuild -f -w better-sqlite3",
-    "test": "jest",
-    "test:watch": "jest --watch"
+    "rebuild:native": "npx @electron/rebuild -f -w better-sqlite3,serialport",
+    "package:win": "npm run build && npm run rebuild:native && electron-builder --win nsis",
+    "package:mac": "npm run build && electron-builder --mac --x64",
+    "package:linux": "npm run build && npm run rebuild:native && electron-builder --linux --x64"
   },
   "build": {
     "appId": "com.sistetecni.pos",
     "productName": "Sistetecni POS",
     "asar": true,
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "build"
     },
     "files": [
       "dist/**/*",
       "database/**/*",
       "package.json"
-    ],
-    "extraResources": [
-      {
-        "from": "resources/mysql-8.0.msi",
-        "to": "resources/mysql-8.0.msi"
-      }
     ],
     "publish": [
       {
@@ -43,11 +37,33 @@
         "repo": "posillo"
       }
     ],
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.business",
+      "icon": "build/icon.icns",
+      "artifactName": "SistetecniPOS-${version}-mac-${arch}.${ext}"
+    },
+    "dmg": {
+      "icon": "build/icon.icns"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Office",
+      "artifactName": "SistetecniPOS-${version}-linux-${arch}.${ext}"
+    },
     "win": {
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "artifactName": "SistetecniPOS-Setup-${version}.exe",
@@ -80,6 +96,7 @@
     "uuid": "^11.0.5"
   },
   "devDependencies": {
+    "@electron/rebuild": "^4.0.3",
     "@types/bcryptjs": "^2.4.6",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.13.5",
