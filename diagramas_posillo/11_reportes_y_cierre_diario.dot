@@ -1,0 +1,75 @@
+digraph G {
+  graph [fontname="Helvetica", rankdir=LR, nodesep=0.55, ranksep=0.9, splines=ortho, bgcolor="white", labelloc="t"];
+  node [fontname="Helvetica", shape=box, style="rounded,filled", color="#CBD5E1", penwidth=1.1, margin="0.10,0.06", fontsize=10];
+  edge [fontname="Helvetica", color="#64748B", arrowsize=0.8, penwidth=1.1, fontsize=9];
+  labelloc="t";
+  label="Reportes generales, dashboard y cierre diario";
+  subgraph cluster_actor {
+    label="Actor";
+    color="#FDBA74";
+    style="rounded";
+  actor [label="Administrador / Supervisor", fillcolor="#FFF7ED", shape=oval];
+  }
+  subgraph cluster_view {
+    label="Vista";
+    color="#60A5FA";
+    style="rounded";
+  dashboard [label="Dashboard.tsx
+todaySummary + last7DaysSales + cash status", fillcolor="#EFF6FF", shape=box];
+  reports [label="Reports.tsx
+salesByDay + topProducts + summary", fillcolor="#EFF6FF", shape=box];
+  daily [label="DailyClose.tsx
+reportDailyClose + exportar HTML/PDF", fillcolor="#EFF6FF", shape=box];
+  }
+  subgraph cluster_controller {
+    label="Controller";
+    color="#A78BFA";
+    style="rounded";
+  preload [label="preload.ts
+api.reports.* + api.cash.getStatus", fillcolor="#F5F3FF", shape=box];
+  ipc [label="reports.ipc.ts
+reports:*", fillcolor="#F5F3FF", shape=box];
+  }
+  subgraph cluster_model {
+    label="Model";
+    color="#34D399";
+    style="rounded";
+  repo [label="reports.repo.ts
+reportSalesByDayRepo, reportTopProductsRepo,
+reportSummaryRepo, getTodaySummaryRepo,
+getLast7DaysSalesRepo, reportDailyCloseRepo", fillcolor="#ECFDF5", shape=box];
+  }
+  subgraph cluster_dao {
+    label="DAO";
+    color="#F59E0B";
+    style="rounded";
+  dao [label="queries.ts report*
+o mysql/reports.mysql.ts", fillcolor="#FEF3C7", shape=box];
+  }
+  subgraph cluster_data {
+    label="Datos / salida";
+    color="#94A3B8";
+    style="rounded";
+  data [label="sales, sale_items, expenses, products
++ cash status", fillcolor="#F3F4F6", shape=box];
+  file [label="Gráficas y documento HTML del cierre diario", fillcolor="#F3F4F6", shape=box];
+  }
+  note1 [label="El cierre diario NO usa cash_closures; se calcula como resumen analítico del día por ventas, devoluciones, utilidad, gastos y totales por método de pago.", fillcolor="#F8FAFC", shape=note, color="#CBD5E1"];
+  actor -> dashboard [label="1. abre dashboard/reportes/cierre diario", color="#64748B", fontcolor="#64748B"];
+  dashboard -> preload [label="2a. todaySummary + last7DaysSales + cash status", color="#4F46E5", fontcolor="#4F46E5"];
+  reports -> preload [label="2b. salesByDay + topProducts + summary", color="#4F46E5", fontcolor="#4F46E5"];
+  daily -> preload [label="2c. reportDailyClose(from,to)", color="#4F46E5", fontcolor="#4F46E5"];
+  preload -> ipc [label="3. reports:*", color="#4F46E5", fontcolor="#4F46E5"];
+  ipc -> repo [label="4. valida reports:read", color="#7C3AED", fontcolor="#7C3AED"];
+  repo -> dao [label="5. ejecuta consultas agregadas", color="#059669", fontcolor="#059669"];
+  dao -> data [label="6. suma ventas, costos, gastos, top y por método", color="#D97706", fontcolor="#D97706"];
+  data -> dao [label="7. dataset consolidado", color="#334155", fontcolor="#334155"];
+  dao -> repo [label="8. respuesta repo", color="#059669", fontcolor="#059669"];
+  repo -> ipc [label="9. resultado listo", color="#059669", fontcolor="#059669"];
+  ipc -> preload [label="10. respuesta IPC", color="#4F46E5", fontcolor="#4F46E5"];
+  preload -> dashboard [label="11a. cards + gráfico 7 días", color="#4F46E5", fontcolor="#4F46E5"];
+  preload -> reports [label="11b. charts + top productos", color="#4F46E5", fontcolor="#4F46E5"];
+  preload -> daily [label="11c. resumen neto + export", color="#4F46E5", fontcolor="#4F46E5"];
+  daily -> file [label="12. buildDailyCloseHtml + vista previa/print", color="#334155", fontcolor="#334155"];
+  note1 -> view_main [style=dashed, arrowhead=none, color="#94A3B8"];
+}

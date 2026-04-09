@@ -1,0 +1,70 @@
+digraph G {
+  graph [fontname="Helvetica", rankdir=LR, nodesep=0.55, ranksep=0.9, splines=ortho, bgcolor="white", labelloc="t"];
+  node [fontname="Helvetica", shape=box, style="rounded,filled", color="#CBD5E1", penwidth=1.1, margin="0.10,0.06", fontsize=10];
+  edge [fontname="Helvetica", color="#64748B", arrowsize=0.8, penwidth=1.1, fontsize=9];
+  labelloc="t";
+  label="Listar usuarios, crear usuario y resetear/cambiar contraseña";
+  subgraph cluster_actor {
+    label="Actor";
+    color="#FDBA74";
+    style="rounded";
+  actor [label="Administrador", fillcolor="#FFF7ED", shape=oval];
+  }
+  subgraph cluster_view {
+    label="Vista";
+    color="#60A5FA";
+    style="rounded";
+  users [label="Users.tsx
+listado, crear, resetear", fillcolor="#EFF6FF", shape=box];
+  change [label="ChangePassword.tsx
+cambio obligatorio o voluntario", fillcolor="#EFF6FF", shape=box];
+  }
+  subgraph cluster_controller {
+    label="Controller";
+    color="#A78BFA";
+    style="rounded";
+  service [label="services/users.ts
+listUsers, createUser, resetUserPassword", fillcolor="#F5F3FF", shape=box];
+  preload [label="preload.ts
+api.users.*", fillcolor="#F5F3FF", shape=box];
+  ipc [label="users.ipc.ts
+users:list, create, reset-password,
+change-password", fillcolor="#F5F3FF", shape=box];
+  }
+  subgraph cluster_model {
+    label="Model";
+    color="#34D399";
+    style="rounded";
+  audit [label="audit mysql/sqlite
+USER_CREATE / USER_RESET_PASSWORD / USER_CHANGE_PASSWORD", fillcolor="#ECFDF5", shape=box];
+  }
+  subgraph cluster_dao {
+    label="DAO";
+    color="#F59E0B";
+    style="rounded";
+  dao [label="listUsers, createUser, resetUserPassword,
+changeUserPassword (SQLite o MySQL)", fillcolor="#FEF3C7", shape=box];
+  }
+  subgraph cluster_data {
+    label="Datos";
+    color="#94A3B8";
+    style="rounded";
+  data [label="Tabla users + audit_logs
+password_hash + role + must_change_password", fillcolor="#F3F4F6", shape=box];
+  }
+  note1 [label="App.tsx fuerza ChangePassword cuando el usuario llega con mustChangePassword. users.ipc.ts también permite auto-cambio o cambio administrativo a otro usuario.", fillcolor="#F8FAFC", shape=note, color="#CBD5E1"];
+  actor -> users [label="1. abre gestión de usuarios", color="#64748B", fontcolor="#64748B"];
+  users -> service [label="2a. listUsers / createUser / resetUserPassword", color="#4F46E5", fontcolor="#4F46E5"];
+  change -> preload [label="2b. users:change-password", color="#4F46E5", fontcolor="#4F46E5"];
+  service -> preload [label="3. api.users.*", color="#4F46E5", fontcolor="#4F46E5"];
+  preload -> ipc [label="4. users:*", color="#4F46E5", fontcolor="#4F46E5"];
+  ipc -> dao [label="5. backend activo + validaciones", color="#059669", fontcolor="#059669"];
+  dao -> data [label="6. SELECT/INSERT/UPDATE users", color="#D97706", fontcolor="#D97706"];
+  data -> dao [label="7. respuesta DB", color="#334155", fontcolor="#334155"];
+  ipc -> audit [label="8. registra evento de seguridad", color="#059669", fontcolor="#059669"];
+  audit -> data [label="9. inserta audit_logs", color="#334155", fontcolor="#334155"];
+  ipc -> preload [label="10. respuesta IPC", color="#4F46E5", fontcolor="#4F46E5"];
+  preload -> users [label="11. refresca tabla o cierra modal", color="#4F46E5", fontcolor="#4F46E5"];
+  preload -> change [label="12. permite continuar sesión", color="#4F46E5", fontcolor="#4F46E5"];
+  note1 -> view_main [style=dashed, arrowhead=none, color="#94A3B8"];
+}

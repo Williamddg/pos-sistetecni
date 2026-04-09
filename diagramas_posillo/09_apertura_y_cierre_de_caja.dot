@@ -1,0 +1,78 @@
+digraph G {
+  graph [fontname="Helvetica", rankdir=LR, nodesep=0.55, ranksep=0.9, splines=ortho, bgcolor="white", labelloc="t"];
+  node [fontname="Helvetica", shape=box, style="rounded,filled", color="#CBD5E1", penwidth=1.1, margin="0.10,0.06", fontsize=10];
+  edge [fontname="Helvetica", color="#64748B", arrowsize=0.8, penwidth=1.1, fontsize=9];
+  labelloc="t";
+  label="Apertura de caja y cierre de caja";
+  subgraph cluster_actor {
+    label="Actor";
+    color="#FDBA74";
+    style="rounded";
+  actor [label="Administrador / Supervisor", fillcolor="#FFF7ED", shape=oval];
+  }
+  subgraph cluster_view {
+    label="Vista";
+    color="#60A5FA";
+    style="rounded";
+  view_main [label="Cash.tsx
+refresh(), abrir caja, cerrar caja,
+comprobante HTML", fillcolor="#EFF6FF", shape=box];
+  }
+  subgraph cluster_controller {
+    label="Controller";
+    color="#A78BFA";
+    style="rounded";
+  preload [label="preload.ts
+api.cash.*", fillcolor="#F5F3FF", shape=box];
+  ipc [label="cash.ipc.ts
+cash:open, get-open, get-status,
+get-open-suggestion, cash:close", fillcolor="#F5F3FF", shape=box];
+  }
+  subgraph cluster_model {
+    label="Model";
+    color="#34D399";
+    style="rounded";
+  repo [label="cash.repo.ts
+openCashRepo / getCashStatusRepo / closeCashRepo", fillcolor="#ECFDF5", shape=box];
+  audit [label="audit repo
+CASH_OPEN / CASH_CLOSE", fillcolor="#ECFDF5", shape=box];
+  backup [label="backups.ipc.ts
+createBackup(cash_close)", fillcolor="#ECFDF5", shape=box];
+  }
+  subgraph cluster_dao {
+    label="DAO";
+    color="#F59E0B";
+    style="rounded";
+  dao [label="openCash / getOpenCash / getCashStatus / closeCash
+(o equivalentes MySQL)", fillcolor="#FEF3C7", shape=box];
+  }
+  subgraph cluster_data {
+    label="Datos / salida";
+    color="#94A3B8";
+    style="rounded";
+  data [label="cash_closures + sales + expenses + audit_logs", fillcolor="#F3F4F6", shape=box];
+  file [label="Backup + comprobante de cierre", fillcolor="#F3F4F6", shape=box];
+  }
+  note1 [label="El cierre de caja no solo cierra la sesión: calcula efectivo esperado con ventas en efectivo y gastos del turno, registra auditoría y dispara un backup automático.", fillcolor="#F8FAFC", shape=note, color="#CBD5E1"];
+  actor -> view_main [label="1. abre módulo caja", color="#64748B", fontcolor="#64748B"];
+  view_main -> preload [label="2. consulta getOpen/getStatus/getOpenSuggestion", color="#4F46E5", fontcolor="#4F46E5"];
+  preload -> ipc [label="3. cash:get-*", color="#4F46E5", fontcolor="#4F46E5"];
+  ipc -> repo [label="4. obtiene estado actual", color="#059669", fontcolor="#059669"];
+  repo -> dao [label="5. lee cash_closures/sales/expenses", color="#059669", fontcolor="#059669"];
+  dao -> data [label="6. calcula efectivo esperado", color="#D97706", fontcolor="#D97706"];
+  data -> view_main [label="7. renderiza resumen del turno", color="#334155", fontcolor="#334155"];
+  actor -> view_main [label="8. confirma apertura o cierre", color="#64748B", fontcolor="#64748B"];
+  view_main -> preload [label="9. api.cash.open o api.cash.close", color="#4F46E5", fontcolor="#4F46E5"];
+  preload -> ipc [label="10. cash:open / cash:close", color="#4F46E5", fontcolor="#4F46E5"];
+  ipc -> repo [label="11. ejecuta operación y valida permisos", color="#7C3AED", fontcolor="#7C3AED"];
+  repo -> dao [label="12. INSERT o UPDATE cash_closures", color="#059669", fontcolor="#059669"];
+  dao -> data [label="13. persiste montos del turno", color="#D97706", fontcolor="#D97706"];
+  ipc -> audit [label="14. registra auditoría", color="#059669", fontcolor="#059669"];
+  audit -> data [label="15. inserta audit_logs", color="#334155", fontcolor="#334155"];
+  ipc -> backup [label="16. crea backup al cerrar", color="#059669", fontcolor="#059669"];
+  backup -> file [label="17. guarda backup path", color="#334155", fontcolor="#334155"];
+  ipc -> preload [label="18. devuelve resultado", color="#4F46E5", fontcolor="#4F46E5"];
+  preload -> view_main [label="19. Cash.tsx arma comprobante HTML", color="#4F46E5", fontcolor="#4F46E5"];
+  view_main -> file [label="20. vista previa / imprimir cierre", color="#334155", fontcolor="#334155"];
+  note1 -> view_main [style=dashed, arrowhead=none, color="#94A3B8"];
+}

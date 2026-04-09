@@ -1,0 +1,76 @@
+digraph G {
+  graph [fontname="Helvetica", rankdir=LR, nodesep=0.55, ranksep=0.9, splines=ortho, bgcolor="white", labelloc="t"];
+  node [fontname="Helvetica", shape=box, style="rounded,filled", color="#CBD5E1", penwidth=1.1, margin="0.10,0.06", fontsize=10];
+  edge [fontname="Helvetica", color="#64748B", arrowsize=0.8, penwidth=1.1, fontsize=9];
+  labelloc="t";
+  label="Suspender venta, reanudar venta y devolver venta";
+  subgraph cluster_actor {
+    label="Actor";
+    color="#FDBA74";
+    style="rounded";
+  actor [label="Cajero", fillcolor="#FFF7ED", shape=oval];
+  }
+  subgraph cluster_view {
+    label="Vista";
+    color="#60A5FA";
+    style="rounded";
+  view_main [label="POS.tsx
+Suspender / Reanudar / Devolver", fillcolor="#EFF6FF", shape=box];
+  }
+  subgraph cluster_controller {
+    label="Controller";
+    color="#A78BFA";
+    style="rounded";
+  service [label="services/sales.ts
+suspendSale, list/get/deleteSuspended,
+getSaleDetail, returnSale", fillcolor="#F5F3FF", shape=box];
+  preload [label="preload.ts
+api.sales.*", fillcolor="#F5F3FF", shape=box];
+  ipc [label="sales.ipc.ts
+sales:suspend / suspended-* / detail / return", fillcolor="#F5F3FF", shape=box];
+  }
+  subgraph cluster_model {
+    label="Model";
+    color="#34D399";
+    style="rounded";
+  mode [label="getDbMode()
+flujo SQLite o MySQL", fillcolor="#ECFDF5", shape=box];
+  }
+  subgraph cluster_dao {
+    label="DAO";
+    color="#F59E0B";
+    style="rounded";
+  dao [label="suspended_sales + suspended_sale_items
+getSaleDetail
+returnSaleMySql", fillcolor="#FEF3C7", shape=box];
+  }
+  subgraph cluster_data {
+    label="Datos";
+    color="#94A3B8";
+    style="rounded";
+  data [label="Tablas suspended_sales, suspended_sale_items,
+sales, sale_items, sale_returns, products", fillcolor="#F3F4F6", shape=box];
+  }
+  note1 [label="La devolución está implementada solo en MySQL: sales.ipc.ts lanza error si el backend activo es SQLite.", fillcolor="#F8FAFC", shape=note, color="#CBD5E1"];
+  actor -> view_main [label="1. suspende o reanuda venta", color="#64748B", fontcolor="#64748B"];
+  view_main -> service [label="2. llama servicio sales.*", color="#4F46E5", fontcolor="#4F46E5"];
+  service -> preload [label="3. api.sales.*", color="#4F46E5", fontcolor="#4F46E5"];
+  preload -> ipc [label="4. canal sales correspondiente", color="#4F46E5", fontcolor="#4F46E5"];
+  ipc -> mode [label="5. consulta modo de BD", color="#059669", fontcolor="#059669"];
+  mode -> dao [label="6. usa SQLite o MySQL", color="#059669", fontcolor="#059669"];
+  dao -> data [label="7a. guarda temporales en suspended_*
+7b. recupera y elimina suspendida
+7c. lee detalle de venta", color="#D97706", fontcolor="#D97706"];
+  data -> dao [label="8. retorna detalle / confirmación", color="#334155", fontcolor="#334155"];
+  dao -> ipc [label="9. respuesta a POS", color="#059669", fontcolor="#059669"];
+  ipc -> preload [label="10. promise resuelta", color="#4F46E5", fontcolor="#4F46E5"];
+  preload -> service [label="11. datos disponibles en UI", color="#4F46E5", fontcolor="#4F46E5"];
+  service -> view_main [label="12. recarga carrito o historial", color="#4F46E5", fontcolor="#4F46E5"];
+  view_main -> service [label="13. devolución desde detalle", color="#4F46E5", fontcolor="#4F46E5"];
+  service -> preload [label="14. api.sales.return", color="#4F46E5", fontcolor="#4F46E5"];
+  preload -> ipc [label="15. sales:return", color="#4F46E5", fontcolor="#4F46E5"];
+  ipc -> dao [label="16. returnSaleMySql", color="#059669", fontcolor="#059669"];
+  dao -> data [label="17. inserta sale_returns y repone stock", color="#D97706", fontcolor="#D97706"];
+  data -> view_main [label="18. muestra total devuelto", color="#334155", fontcolor="#334155"];
+  note1 -> view_main [style=dashed, arrowhead=none, color="#94A3B8"];
+}

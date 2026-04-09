@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Diagramas POS</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; color: #0f172a; background: #f8fafc; }
+    h1 { margin-top: 0; }
+    .card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 18px; margin-bottom: 18px; box-shadow: 0 8px 24px rgba(15,23,42,.04); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; }
+    a { color: #1d4ed8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    ul { margin: 0; padding-left: 20px; }
+    li { margin: 6px 0; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Diagramas del sistema POS</h1>
+    <p>Paquete de diagramas basado en el código real del proyecto. La recomendación es entregar primero el diagrama general y luego los diagramas por proceso.</p>
+    <p><a href="README.md">Leer guía rápida</a> · <a href="referencias_codigo.md">Ver referencias de código</a></p>
+  </div>
+  <div class="card">
+    <h2>Diagramas</h2>
+    <div class="grid">
+      <ul>
+        <li><a href="00_arquitectura_general.svg">00 Arquitectura general</a></li>
+        <li><a href="01_inicio_y_licencia.svg">01 Inicio y licencia</a></li>
+        <li><a href="02_login.svg">02 Login</a></li>
+        <li><a href="03_consultar_inventario.svg">03 Consultar inventario</a></li>
+        <li><a href="04_gestionar_producto.svg">04 Gestionar producto</a></li>
+        <li><a href="05_buscar_producto_en_pos.svg">05 Buscar producto en POS</a></li>
+      </ul>
+      <ul>
+        <li><a href="06_realizar_venta_y_generar_factura.svg">06 Venta y factura</a></li>
+        <li><a href="07_imprimir_factura_y_abrir_cajon.svg">07 Imprimir y abrir cajón</a></li>
+        <li><a href="08_suspender_reanudar_y_devolver_venta.svg">08 Suspendidas y devoluciones</a></li>
+        <li><a href="09_apertura_y_cierre_de_caja.svg">09 Apertura y cierre de caja</a></li>
+        <li><a href="10_registrar_y_consultar_gastos.svg">10 Gastos</a></li>
+        <li><a href="11_reportes_y_cierre_diario.svg">11 Reportes y cierre diario</a></li>
+        <li><a href="12_gestion_de_usuarios.svg">12 Gestión de usuarios</a></li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

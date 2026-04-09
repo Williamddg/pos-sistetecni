@@ -1,0 +1,72 @@
+digraph G {
+  graph [fontname="Helvetica", rankdir=LR, nodesep=0.55, ranksep=0.9, splines=ortho, bgcolor="white", labelloc="t"];
+  node [fontname="Helvetica", shape=box, style="rounded,filled", color="#CBD5E1", penwidth=1.1, margin="0.10,0.06", fontsize=10];
+  edge [fontname="Helvetica", color="#64748B", arrowsize=0.8, penwidth=1.1, fontsize=9];
+  labelloc="t";
+  label="Crear / editar / archivar producto";
+  subgraph cluster_actor {
+    label="Actor";
+    color="#FDBA74";
+    style="rounded";
+  actor [label="Administrador
+(o Supervisor para crear/editar)", fillcolor="#FFF7ED", shape=oval];
+  }
+  subgraph cluster_view {
+    label="Vista";
+    color="#60A5FA";
+    style="rounded";
+  view_main [label="Inventory.tsx
+Guardar, Editar, Archivar", fillcolor="#EFF6FF", shape=box];
+  }
+  subgraph cluster_controller {
+    label="Controller";
+    color="#A78BFA";
+    style="rounded";
+  service [label="services/products.ts
+saveProduct / updateProduct / archiveProduct", fillcolor="#F5F3FF", shape=box];
+  preload [label="preload.ts
+api.products.*", fillcolor="#F5F3FF", shape=box];
+  ipc [label="products.ipc.ts
+products:save / update / archive", fillcolor="#F5F3FF", shape=box];
+  }
+  subgraph cluster_model {
+    label="Model";
+    color="#34D399";
+    style="rounded";
+  model [label="products.repo.ts
+upsertProductRepo / updateProductRepo / archiveProductRepo", fillcolor="#ECFDF5", shape=box];
+  audit [label="audit repo / logAudit
+PRODUCT_SAVE / UPDATE / DELETE", fillcolor="#ECFDF5", shape=box];
+  }
+  subgraph cluster_dao {
+    label="DAO";
+    color="#F59E0B";
+    style="rounded";
+  dao [label="sqlite_upsertProduct / mysql_upsertProduct
++ validación de barcode", fillcolor="#FEF3C7", shape=box];
+  }
+  subgraph cluster_data {
+    label="Datos";
+    color="#94A3B8";
+    style="rounded";
+  data [label="Tabla products
+INSERT / UPDATE / archive(active=0)
++ audit_logs", fillcolor="#F3F4F6", shape=box];
+  }
+  note1 [label="Archivar no borra físicamente el producto: cambia active = 0. Solo ADMIN ve el botón de archivar en la UI.", fillcolor="#F8FAFC", shape=note, color="#CBD5E1"];
+  actor -> view_main [label="1. captura datos del producto", color="#64748B", fontcolor="#64748B"];
+  view_main -> service [label="2. save/update/archive", color="#4F46E5", fontcolor="#4F46E5"];
+  service -> preload [label="3. api.products.*", color="#4F46E5", fontcolor="#4F46E5"];
+  preload -> ipc [label="4. products:save|update|archive", color="#4F46E5", fontcolor="#4F46E5"];
+  ipc -> model [label="5. valida inventory:write", color="#7C3AED", fontcolor="#7C3AED"];
+  model -> dao [label="6. normaliza payload y elige backend", color="#059669", fontcolor="#059669"];
+  dao -> data [label="7. INSERT/UPDATE o archive", color="#D97706", fontcolor="#D97706"];
+  data -> dao [label="8. confirmación DB", color="#334155", fontcolor="#334155"];
+  dao -> model [label="9. devuelve id / producto", color="#059669", fontcolor="#059669"];
+  ipc -> audit [label="10. registra auditoría", color="#059669", fontcolor="#059669"];
+  audit -> data [label="11. inserta en audit_logs", color="#334155", fontcolor="#334155"];
+  ipc -> preload [label="12. respuesta IPC", color="#4F46E5", fontcolor="#4F46E5"];
+  preload -> service [label="13. promise resuelta", color="#4F46E5", fontcolor="#4F46E5"];
+  service -> view_main [label="14. refresca listado", color="#4F46E5", fontcolor="#4F46E5"];
+  note1 -> view_main [style=dashed, arrowhead=none, color="#94A3B8"];
+}

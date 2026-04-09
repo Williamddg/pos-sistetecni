@@ -1,0 +1,80 @@
+digraph G {
+  graph [fontname="Helvetica", rankdir=LR, nodesep=0.55, ranksep=0.9, splines=ortho, bgcolor="white", labelloc="t"];
+  node [fontname="Helvetica", shape=box, style="rounded,filled", color="#CBD5E1", penwidth=1.1, margin="0.10,0.06", fontsize=10];
+  edge [fontname="Helvetica", color="#64748B", arrowsize=0.8, penwidth=1.1, fontsize=9];
+  labelloc="t";
+  label="Realizar venta + descontar stock + generar factura PDF";
+  subgraph cluster_actor {
+    label="Actor";
+    color="#FDBA74";
+    style="rounded";
+  actor [label="Cajero / Vendedor", fillcolor="#FFF7ED", shape=oval];
+  }
+  subgraph cluster_view {
+    label="Vista";
+    color="#60A5FA";
+    style="rounded";
+  view_main [label="POS.tsx
+carrito, totales, cliente, pago", fillcolor="#EFF6FF", shape=box];
+  invoice_html [label="buildInvoiceHtml()
+HTML para impresión opcional", fillcolor="#EFF6FF", shape=box];
+  }
+  subgraph cluster_controller {
+    label="Controller";
+    color="#A78BFA";
+    style="rounded";
+  service [label="services/sales.ts
+createSale()", fillcolor="#F5F3FF", shape=box];
+  preload [label="preload.ts
+api.sales.create", fillcolor="#F5F3FF", shape=box];
+  ipc [label="sales.ipc.ts
+sales:create", fillcolor="#F5F3FF", shape=box];
+  }
+  subgraph cluster_model {
+    label="Model";
+    color="#34D399";
+    style="rounded";
+  repo [label="sales.repo.ts
+createSaleRepo()", fillcolor="#ECFDF5", shape=box];
+  audit [label="audit.repo.ts
+SALE_CREATE", fillcolor="#ECFDF5", shape=box];
+  pdf [label="invoicePdf.ts
+generateInvoicePdf()", fillcolor="#ECFDF5", shape=box];
+  }
+  subgraph cluster_dao {
+    label="DAO";
+    color="#F59E0B";
+    style="rounded";
+  dao [label="createSale (SQLite) / createSaleMySql
+transacción: sales + sale_items + stock", fillcolor="#FEF3C7", shape=box];
+  }
+  subgraph cluster_data {
+    label="Datos / salida";
+    color="#94A3B8";
+    style="rounded";
+  data [label="Tablas sales, sale_items, products
++ audit_logs", fillcolor="#F3F4F6", shape=box];
+  file [label="Archivo PDF en invoices/", fillcolor="#F3F4F6", shape=box];
+  }
+  note1 [label="Aquí hay dos representaciones de la factura: 1) un PDF que el proceso main genera con PDFKit y guarda en disco; 2) un HTML que el renderer arma para imprimir si el usuario decide hacerlo.", fillcolor="#F8FAFC", shape=note, color="#CBD5E1"];
+  actor -> view_main [label="1. confirma venta", color="#64748B", fontcolor="#64748B"];
+  view_main -> service [label="2. createSale(sale)", color="#4F46E5", fontcolor="#4F46E5"];
+  service -> preload [label="3. api.sales.create", color="#4F46E5", fontcolor="#4F46E5"];
+  preload -> ipc [label="4. sales:create", color="#4F46E5", fontcolor="#4F46E5"];
+  ipc -> repo [label="5. createSaleRepo", color="#059669", fontcolor="#059669"];
+  repo -> dao [label="6. transacción venta", color="#059669", fontcolor="#059669"];
+  dao -> data [label="7. INSERT sales / sale_items
+UPDATE products.stock", color="#D97706", fontcolor="#D97706"];
+  data -> dao [label="8. commit OK + invoiceNumber", color="#334155", fontcolor="#334155"];
+  dao -> repo [label="9. retorna saleId + invoiceNumber", color="#059669", fontcolor="#059669"];
+  ipc -> audit [label="10. registra SALE_CREATE", color="#059669", fontcolor="#059669"];
+  audit -> data [label="11. inserta audit_logs", color="#334155", fontcolor="#334155"];
+  ipc -> pdf [label="12. genera PDF real de factura", color="#059669", fontcolor="#059669"];
+  pdf -> file [label="13. guarda ST-YYYY-XXXXXX.pdf", color="#334155", fontcolor="#334155"];
+  pdf -> ipc [label="14. devuelve ruta del PDF", color="#059669", fontcolor="#059669"];
+  ipc -> preload [label="15. respuesta IPC", color="#4F46E5", fontcolor="#4F46E5"];
+  preload -> service [label="16. promise resuelta", color="#4F46E5", fontcolor="#4F46E5"];
+  service -> view_main [label="17. POS recibe invoiceNumber", color="#4F46E5", fontcolor="#4F46E5"];
+  view_main -> invoice_html [label="18. arma HTML imprimible", color="#64748B", fontcolor="#64748B"];
+  note1 -> view_main [style=dashed, arrowhead=none, color="#94A3B8"];
+}

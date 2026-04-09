@@ -1,0 +1,112 @@
+digraph G {
+  graph [fontname="Helvetica", rankdir=LR, nodesep=0.55, ranksep=0.9, splines=ortho, bgcolor="white", labelloc="t"];
+  node [fontname="Helvetica", shape=box, style="rounded,filled", color="#CBD5E1", penwidth=1.1, margin="0.10,0.06", fontsize=10];
+  edge [fontname="Helvetica", color="#64748B", arrowsize=0.8, penwidth=1.1, fontsize=9];
+  label="Arquitectura general del sistema POS (MVC adaptado + DAO dual)";
+  subgraph cluster_actor {
+    label="Actor";
+    color="#FDBA74";
+    style="rounded";
+  user [label="Usuario
+(Admin / Supervisor / Seller)", fillcolor="#FFF7ED", shape=oval];
+  }
+  subgraph cluster_view {
+    label="Vista (Renderer React)";
+    color="#60A5FA";
+    style="rounded";
+  app [label="App.tsx
+Inicio / sesión / setup", fillcolor="#EFF6FF", shape=box];
+  routes [label="routes.tsx + RequireLicense
+Rutas protegidas por permisos", fillcolor="#EFF6FF", shape=box];
+  pages [label="Pages:
+Login, POS, Inventory, Cash,
+Expenses, Reports, DailyClose, Users, Activate", fillcolor="#EFF6FF", shape=box];
+  ui [label="UI components
+Layout, Modal, Sidebar, Topbar", fillcolor="#EFF6FF", shape=box];
+  }
+  subgraph cluster_controller {
+    label="Controller / Coordinación";
+    color="#A78BFA";
+    style="rounded";
+  services [label="services/*.ts
+auth, products, sales, expenses,
+reports, users, config, session", fillcolor="#F5F3FF", shape=box];
+  preload [label="preload.ts
+window.api (contextBridge)", fillcolor="#F5F3FF", shape=box];
+  ipc [label="ipc/*.ipc.ts
+auth, products, sales, cash,
+expenses, reports, users, audit, config", fillcolor="#F5F3FF", shape=box];
+  rbac [label="RBAC
+shared/permissions.ts + ipc/rbac.ts", fillcolor="#F5F3FF", shape=box];
+  }
+  subgraph cluster_model {
+    label="Model / Lógica de negocio";
+    color="#34D399";
+    style="rounded";
+  repo [label="Repositorios
+products.repo, sales.repo, cash.repo,
+expenses.repo, reports.repo, audit.repo", fillcolor="#ECFDF5", shape=box];
+  domain [label="Reglas de negocio
+createSale, closeCash, report*,
+license, config, invoice PDF", fillcolor="#ECFDF5", shape=box];
+  dbswitch [label="db.ts / dbRouter.ts
+Selecciona SQLite o MySQL", fillcolor="#ECFDF5", shape=box];
+  }
+  subgraph cluster_dao {
+    label="DAO / Acceso a datos";
+    color="#F59E0B";
+    style="rounded";
+  sqlite [label="DAO SQLite
+queries.ts + better-sqlite3", fillcolor="#FEF3C7", shape=box];
+  mysql [label="DAO MySQL
+mysql/*.mysql.ts + mysql2", fillcolor="#FEF3C7", shape=box];
+  migrations [label="migrations.ts
+Esquema, seed admin, tablas base", fillcolor="#FEF3C7", shape=box];
+  }
+  subgraph cluster_data {
+    label="Datos y salidas";
+    color="#94A3B8";
+    style="rounded";
+  sqlite_db [label="SQLite local
+userData/data/sistetecni-pos.db", fillcolor="#F3F4F6", shape=box];
+  mysql_db [label="MySQL server
+Modo multicaja", fillcolor="#F3F4F6", shape=box];
+  files [label="Archivos locales
+config.json, license.json,
+invoices/, backups/", fillcolor="#F3F4F6", shape=box];
+  }
+  subgraph cluster_external {
+    label="Servicios externos / SO";
+    color="#EC4899";
+    style="rounded";
+  supabase [label="Supabase Function
+validate-license", fillcolor="#FCE7F3", shape=box];
+  printer [label="Impresora / BrowserWindow.print", fillcolor="#FCE7F3", shape=box];
+  drawer [label="Cajón monetario
+serial o printer command", fillcolor="#FCE7F3", shape=box];
+  }
+  note1 [label="Interpretación académica sugerida:
+Vista = React renderer | Controller = services + preload + IPC |
+Model = repos + reglas de negocio | DAO = queries.ts + mysql/*.mysql.ts", fillcolor="#F8FAFC", shape=note, color="#CBD5E1"];
+  user -> app [label="usa el sistema", color="#64748B", fontcolor="#64748B"];
+  app -> routes [label="carga flujo inicial", color="#64748B", fontcolor="#64748B"];
+  routes -> pages [label="muestra pantalla / módulo", color="#64748B", fontcolor="#64748B"];
+  pages -> ui [label="renderiza componentes", color="#64748B", fontcolor="#64748B"];
+  pages -> services [label="envía acción", color="#4F46E5", fontcolor="#4F46E5"];
+  services -> preload [label="invoca window.api", color="#4F46E5", fontcolor="#4F46E5"];
+  preload -> ipc [label="IPC invoke", color="#4F46E5", fontcolor="#4F46E5"];
+  ipc -> rbac [label="valida permisos", color="#7C3AED", fontcolor="#7C3AED"];
+  ipc -> repo [label="coordina caso de uso", color="#059669", fontcolor="#059669"];
+  repo -> domain [label="aplica lógica / cálculos", color="#059669", fontcolor="#059669"];
+  domain -> dbswitch [label="define backend activo", color="#059669", fontcolor="#059669"];
+  dbswitch -> sqlite [label="si dbMode=sqlite", color="#D97706", fontcolor="#D97706"];
+  dbswitch -> mysql [label="si dbMode=mysql", color="#D97706", fontcolor="#D97706"];
+  sqlite -> sqlite_db [label="SQL local", color="#334155", fontcolor="#334155"];
+  mysql -> mysql_db [label="SQL remoto", color="#334155", fontcolor="#334155"];
+  domain -> files [label="configuración, PDF, backups", color="#334155", fontcolor="#334155"];
+  domain -> supabase [label="validación de licencia", color="#BE185D", fontcolor="#BE185D"];
+  ipc -> printer [label="impresión factura", color="#BE185D", fontcolor="#BE185D"];
+  pages -> drawer [label="apertura cajón", color="#BE185D", fontcolor="#BE185D"];
+  migrations -> sqlite_db [label="crea/actualiza esquema", color="#334155", fontcolor="#334155"];
+  note1 -> repo [label="convención usada", color="#94A3B8", fontcolor="#94A3B8"];
+}

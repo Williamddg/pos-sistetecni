@@ -1,0 +1,71 @@
+digraph G {
+  graph [fontname="Helvetica", rankdir=LR, nodesep=0.55, ranksep=0.9, splines=ortho, bgcolor="white", labelloc="t"];
+  node [fontname="Helvetica", shape=box, style="rounded,filled", color="#CBD5E1", penwidth=1.1, margin="0.10,0.06", fontsize=10];
+  edge [fontname="Helvetica", color="#64748B", arrowsize=0.8, penwidth=1.1, fontsize=9];
+  labelloc="t";
+  label="Imprimir factura y abrir cajón monetario";
+  subgraph cluster_actor {
+    label="Actor";
+    color="#FDBA74";
+    style="rounded";
+  actor [label="Cajero", fillcolor="#FFF7ED", shape=oval];
+  }
+  subgraph cluster_view {
+    label="Vista";
+    color="#60A5FA";
+    style="rounded";
+  view_main [label="POS.tsx
+Modal: ¿Imprimir factura?", fillcolor="#EFF6FF", shape=box];
+  }
+  subgraph cluster_controller {
+    label="Controller";
+    color="#A78BFA";
+    style="rounded";
+  service [label="services/sales.ts
+printInvoice()", fillcolor="#F5F3FF", shape=box];
+  preload [label="preload.ts
+api.sales.printInvoice
+api.cashdrawer.open", fillcolor="#F5F3FF", shape=box];
+  ipc_sales [label="sales.ipc.ts
+sales:print-invoice", fillcolor="#F5F3FF", shape=box];
+  ipc_drawer [label="cashdrawer.ipc.ts
+cashdrawer:open", fillcolor="#F5F3FF", shape=box];
+  }
+  subgraph cluster_model {
+    label="Model";
+    color="#34D399";
+    style="rounded";
+  print [label="BrowserWindow.loadURL(data:text/html)
+webContents.print()", fillcolor="#ECFDF5", shape=box];
+  drawer [label="Cash drawer command
+serial o printer ESC/POS", fillcolor="#ECFDF5", shape=box];
+  }
+  subgraph cluster_dao {
+    label="Salida física";
+    color="#F59E0B";
+    style="rounded";
+  printer [label="Impresora", fillcolor="#FEF3C7", shape=box];
+  cashbox [label="Cajón monetario", fillcolor="#FEF3C7", shape=box];
+  }
+  subgraph cluster_data {
+    label="Resultado UI";
+    color="#94A3B8";
+    style="rounded";
+  msg [label="Mensaje final
+Venta realizada / impresa", fillcolor="#F3F4F6", shape=box];
+  }
+  note1 [label="La impresión es opcional. Si el pago es en efectivo, el POS además intenta abrir el cajón usando puerto serial o comando a impresora.", fillcolor="#F8FAFC", shape=note, color="#CBD5E1"];
+  actor -> view_main [label="1. elige Imprimir o No imprimir", color="#64748B", fontcolor="#64748B"];
+  view_main -> service [label="2. printInvoice(html) si imprime", color="#4F46E5", fontcolor="#4F46E5"];
+  service -> preload [label="3. api.sales.printInvoice", color="#4F46E5", fontcolor="#4F46E5"];
+  preload -> ipc_sales [label="4. sales:print-invoice", color="#4F46E5", fontcolor="#4F46E5"];
+  ipc_sales -> print [label="5. BrowserWindow.print", color="#059669", fontcolor="#059669"];
+  print -> printer [label="6. envía trabajo a impresora", color="#D97706", fontcolor="#D97706"];
+  printer -> msg [label="7. impresión OK", color="#334155", fontcolor="#334155"];
+  view_main -> preload [label="8. si pago EFECTIVO => api.cashdrawer.open", color="#4F46E5", fontcolor="#4F46E5"];
+  preload -> ipc_drawer [label="9. cashdrawer:open", color="#4F46E5", fontcolor="#4F46E5"];
+  ipc_drawer -> drawer [label="10. prepara comando serial/printer", color="#059669", fontcolor="#059669"];
+  drawer -> cashbox [label="11. abre cajón físico", color="#D97706", fontcolor="#D97706"];
+  cashbox -> msg [label="12. POS actualiza mensaje y limpia carrito", color="#334155", fontcolor="#334155"];
+  note1 -> view_main [style=dashed, arrowhead=none, color="#94A3B8"];
+}

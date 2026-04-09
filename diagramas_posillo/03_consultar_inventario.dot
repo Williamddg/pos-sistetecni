@@ -1,0 +1,66 @@
+digraph G {
+  graph [fontname="Helvetica", rankdir=LR, nodesep=0.55, ranksep=0.9, splines=ortho, bgcolor="white", labelloc="t"];
+  node [fontname="Helvetica", shape=box, style="rounded,filled", color="#CBD5E1", penwidth=1.1, margin="0.10,0.06", fontsize=10];
+  edge [fontname="Helvetica", color="#64748B", arrowsize=0.8, penwidth=1.1, fontsize=9];
+  labelloc="t";
+  label="Consultar inventario / listar productos";
+  subgraph cluster_actor {
+    label="Actor";
+    color="#FDBA74";
+    style="rounded";
+  actor [label="Administrador / Supervisor", fillcolor="#FFF7ED", shape=oval];
+  }
+  subgraph cluster_view {
+    label="Vista";
+    color="#60A5FA";
+    style="rounded";
+  view_main [label="Inventory.tsx
+load() + búsqueda por texto", fillcolor="#EFF6FF", shape=box];
+  }
+  subgraph cluster_controller {
+    label="Controller";
+    color="#A78BFA";
+    style="rounded";
+  service [label="services/products.ts
+listProducts(search)", fillcolor="#F5F3FF", shape=box];
+  preload [label="preload.ts
+window.api", fillcolor="#F5F3FF", shape=box];
+  ipc [label="products.ipc.ts
+products:list + permiso inventory:read", fillcolor="#F5F3FF", shape=box];
+  }
+  subgraph cluster_model {
+    label="Model";
+    color="#34D399";
+    style="rounded";
+  model [label="products.repo.ts
+listProductsRepo()", fillcolor="#ECFDF5", shape=box];
+  }
+  subgraph cluster_dao {
+    label="DAO";
+    color="#F59E0B";
+    style="rounded";
+  dao [label="sqlite_listProducts / mysql_listProducts", fillcolor="#FEF3C7", shape=box];
+  }
+  subgraph cluster_data {
+    label="Datos / salida";
+    color="#94A3B8";
+    style="rounded";
+  data [label="Tabla products
+solo active = 1", fillcolor="#F3F4F6", shape=box];
+  }
+  note1 [label="La consulta de inventario usa un DAO dual. products.repo.ts decide en tiempo de ejecución si leer desde SQLite local o MySQL multicaja.", fillcolor="#F8FAFC", shape=note, color="#CBD5E1"];
+  actor -> view_main [label="1. abre inventario o busca", color="#64748B", fontcolor="#64748B"];
+  view_main -> service [label="2. listProducts(q)", color="#4F46E5", fontcolor="#4F46E5"];
+  service -> preload [label="3. api.products.list", color="#4F46E5", fontcolor="#4F46E5"];
+  preload -> ipc [label="4. products:list", color="#4F46E5", fontcolor="#4F46E5"];
+  ipc -> model [label="5. valida inventory:read", color="#7C3AED", fontcolor="#7C3AED"];
+  model -> dao [label="6. selecciona SQLite o MySQL", color="#059669", fontcolor="#059669"];
+  dao -> data [label="7. SELECT en products", color="#D97706", fontcolor="#D97706"];
+  data -> dao [label="8. filas activas", color="#334155", fontcolor="#334155"];
+  dao -> model [label="9. retorno repo", color="#059669", fontcolor="#059669"];
+  model -> ipc [label="10. lista de productos", color="#059669", fontcolor="#059669"];
+  ipc -> preload [label="11. respuesta", color="#4F46E5", fontcolor="#4F46E5"];
+  preload -> service [label="12. promise resuelta", color="#4F46E5", fontcolor="#4F46E5"];
+  service -> view_main [label="13. render tabla", color="#4F46E5", fontcolor="#4F46E5"];
+  note1 -> view_main [style=dashed, arrowhead=none, color="#94A3B8"];
+}
